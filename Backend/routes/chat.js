@@ -1,6 +1,6 @@
 import express from "express";
 import Thread from "../models/Thread.js";
-import getOpenAIAPIResponse from "../utils/openai.js";
+import getGeminiAPIResponse from "../utils/gemini.js";
 
 const router = express.Router();
 
@@ -24,7 +24,6 @@ router.post("/test", async(req, res) => {
 router.get("/thread", async(req, res) => {
     try {
         const threads = await Thread.find({}).sort({updatedAt: -1});
-        //descending order of updatedAt...most recent data on top
         res.json(threads);
     } catch(err) {
         console.log(err);
@@ -78,7 +77,6 @@ router.post("/chat", async(req, res) => {
         let thread = await Thread.findOne({threadId});
 
         if(!thread) {
-            //create a new thread in Db
             thread = new Thread({
                 threadId,
                 title: message,
@@ -88,7 +86,7 @@ router.post("/chat", async(req, res) => {
             thread.messages.push({role: "user", content: message});
         }
 
-        const assistantReply = await getOpenAIAPIResponse(message);
+        const assistantReply = await getGeminiAPIResponse(message);
 
         thread.messages.push({role: "assistant", content: assistantReply});
         thread.updatedAt = new Date();
@@ -100,8 +98,5 @@ router.post("/chat", async(req, res) => {
         res.status(500).json({error: "something went wrong"});
     }
 });
-
-
-
 
 export default router;
